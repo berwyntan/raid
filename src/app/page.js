@@ -1,120 +1,230 @@
+'use client'
+
 import Image from 'next/image'
+import { useRef, useState } from 'react'
+
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+
+// React table column helper
+const columnHelper = createColumnHelper()
+
+const columns = [
+  
+  columnHelper.accessor('fruit', {
+    header: () => <div className='mx-8'>Fruit</div>,
+    cell: info => info.renderValue(),
+  }),
+  columnHelper.accessor('qty', {
+    header: () => <div className='mx-3'>Qty</div>,
+    cell: info => info.renderValue(),
+  }),
+  columnHelper.accessor('unitPrice', {
+    header: () => <div className='mx-3'>Unit($)</div>,
+    cell: info => info.renderValue(),
+  }),
+  columnHelper.accessor('subtotal', {
+    header: () => <div className='mx-4'>Subtotal($)</div>,
+    cell: info => info.renderValue(),
+  }),  
+]
+
+// pricing of fruits
+const fruitsData = {
+  'apple': 2,
+  'banana': 1.5,
+  'pear': 2.3,
+  'orange': 1.8
+}
+
+// list of available fruits
+const fruitsList = Object.keys(fruitsData)
+
+// function to validate input
+const lineValidation = (line) => {
+  // split entry line by space
+  const lineSplit = line.toLowerCase().split(' ')
+  // create json for item and qty
+  const order = {}
+  // iterate through lineSplit array to create json of item and qty
+  for (let i=0; i<lineSplit.length; i++) {
+    // iterate through fruitsList to check if the fruit is ordered
+    for (let j=0; j<fruitsList.length; j++) {
+      // if fruit in POS is the same as that in list
+      if (lineSplit[i] === fruitsList[j]) {   
+        // create a json entry of the fruit and its qty by removing the 'x' and converting str to int  
+        order[fruitsList[j]] = parseInt(lineSplit[i+1].split('x')[1])
+      }
+    }      
+  }
+  console.log(order)
+
+  const countValidation = {
+    1: 2,
+    2: 5,
+    3: 8,
+    4: 11
+  }
+
+  let count = 0
+  let lineError = ''
+
+  for (const [key1, value1] of Object.entries(order)) {
+    if (order.hasOwnProperty(key1)) {
+      count++
+    }
+    if (isNaN(value1)) {
+      lineError = 'Input error in fruit quantity!'
+    }
+  }
+  
+  
+  if (lineSplit.length !== countValidation[count]) {
+    lineError = 'Input error in fruit name!'
+  }
+ 
+  return { order, lineError }
+}
+
+// function to calculate subtotal and total
+const getOrderDetails = (order) => {
+  const receipt = []
+  let total = 0
+  let i = 0
+  // iterate through POS order
+  for (const [key1, value1] of Object.entries(order)) {
+    
+    // iterate through pricelist 
+    for (const [key2, value2] of Object.entries(fruitsData)) {
+      if (key1 === key2) {
+        // 0:fruit, 1: qty, 2: unitPrice, 3: subtotal
+        const details = {}
+        // get subtotal for a fruit
+        details['fruit'] = key1
+        details['qty'] = value1
+        details['unitPrice'] = value2
+        details['subtotal'] = value1 * value2
+        total += value1 * value2
+
+        receipt[i] = details
+        i += 1
+      }
+    }
+  }    
+  
+  return [receipt, {'total': total}]
+}
 
 export default function Home() {
+
+  // react table 
+  const [data, setData] = useState([])
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  // ref for text input
+  const lineRef = useRef()
+
+  // useState for total cost
+  const [total, setTotal] = useState(0)
+
+  // useState for errors
+  const [error, setError] = useState('')
+  
+  // function to handle form input
+  const lineHandler = (event) => {
+    event.preventDefault()
+    setError('')
+    const enteredLine = lineRef.current.value
+
+    // apply validation
+    const { order, lineError } = lineValidation(enteredLine)
+    
+    // calculate sub totals and total
+    const receipt = getOrderDetails(order)
+    console.log(receipt)
+    setData(receipt[0])
+    setTotal(receipt[1].total)
+    setError(lineError)
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center p-24">
       <h1 className='text-xl my-5'>JENNY'S FRUITS POS</h1>
-      <form>
+      <div className='my-5'>
+        <h3 className='text-lg'>How To Use</h3>
+        <div className='text-sm'>
+          <div>Type fruit name, space, then quantity of fruit as xNumber</div>
+          <div>Type 'and' if you have more than 1 fruit then repeat</div>
+          <div>Examples:</div>
+          <div><i>apple x1</i></div>
+          <div><i>apple x1 and pear x2</i></div>
+          <div><i>apple x1 and pear x2 and banana x3</i></div>
+        </div>
+      </div>
+      <form onSubmit={lineHandler}>
         <div className='flex'>
           <label className='mx-2' htmlFor='items'>Items:</label>
-          <input className='text-black' type='items' id='items' />
+          <input className='text-black' type='items' id='items' ref={lineRef}/>
         </div>
       </form>
-      {/* <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+      
+      <div className="p-4">
+      <table>
+        <thead>
+          {table.getHeaderGroups().map(headerGroup => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <th key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map(row => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          {table.getFooterGroups().map(footerGroup => (
+            <tr key={footerGroup.id}>
+              {footerGroup.headers.map(header => (
+                <th key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.footer,
+                        header.getContext()
+                      )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </tfoot>
+      </table>
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div> */}
+      <div className=''><b>Total: ${total}</b></div>
+      <div>{error}</div>
     </main>
   )
 }
