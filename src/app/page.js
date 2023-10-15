@@ -80,8 +80,7 @@ const lineValidation = (line) => {
     if (isNaN(value1)) {
       lineError = 'Input error in fruit quantity!'
     }
-  }
-  
+  }  
   
   if (lineSplit.length !== countValidation[count]) {
     lineError = 'Input error in fruit name!'
@@ -118,6 +117,8 @@ const getOrderDetails = (order) => {
   
   return [receipt, {'total': total}]
 }
+
+
 
 export default function Home() {
 
