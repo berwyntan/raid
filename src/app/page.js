@@ -10,6 +10,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
+import { dbConnect } from '../../lib/mongodb'
+
 // React table column helper
 const columnHelper = createColumnHelper()
 
@@ -118,10 +120,7 @@ const getOrderDetails = (order) => {
   return [receipt, {'total': total}]
 }
 
-
-
 export default function Home() {
-
   // react table 
   const [data, setData] = useState([])
   const table = useReactTable({
@@ -140,7 +139,7 @@ export default function Home() {
   const [error, setError] = useState('')
   
   // function to handle form input
-  const lineHandler = (event) => {
+  const lineHandler = async (event) => {
     event.preventDefault()
     setError('')
     const enteredLine = lineRef.current.value
@@ -154,6 +153,9 @@ export default function Home() {
     setData(receipt[0])
     setTotal(receipt[1].total)
     setError(lineError)
+    const res = await fetch(`https://catfact.ninja/fact`, { cache: 'force-cache' })
+    const data = await res.json()
+    console.log(data.fact)
   }
 
   return (
@@ -174,7 +176,8 @@ export default function Home() {
         <div className='flex'>
           <label className='mx-2' htmlFor='items'>Items:</label>
           <input className='text-black' type='items' id='items' ref={lineRef}/>
-        </div>
+          <button className='mx-4 bg-gray-500 p-1'type='submit'>Submit</button>
+        </div>        
       </form>
       
       <div className="p-4">
@@ -228,4 +231,5 @@ export default function Home() {
       <div>{error}</div>
     </main>
   )
+  
 }
