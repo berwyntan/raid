@@ -6,11 +6,11 @@ Server code:
 
 ## User Journey
 
-![user journey](\README\Note 12 Oct 2023.png)
+![user journey](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023.png)
 
 ## Workflow
 
-![work flow](\README\Note 12 Oct 2023 2.png)
+![work flow](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
 
 ## Libraries used
 
