@@ -16,15 +16,15 @@ Server code:
 
 ### Front end
 
-NextJS
+NextJS /
 React Table
 
 ### Server
 
-NodeJS
-Express
-Mongoose
-Cors
+NodeJS /
+Express /
+Mongoose /
+Cors /
 Dotenv
 
 ### Database
@@ -44,9 +44,10 @@ MongoDB
 
 ## Challenges
 
-Not too familiar with NextJS 13, I have done tutorials on NextJS but they were older versions and the tutorials did not use MongoDB.
-Was unable to put the server code on NextJS as I had trouble at first linking MongoDB. (Left some of the code there as proof!) Then after linking up MongoDB, I could not bring JSON files from server/database to client. Due to time constraints, I pivoted and used a separate server using NodeJS. 
-It was my first time using React Table and the table could look better.
+- Not too familiar with NextJS 13, I have done tutorials on NextJS but they were older versions and the tutorials did not use MongoDB.
+- Was unable to put the server code on NextJS as I had trouble at first linking MongoDB. (Left some of the code there as proof!) 
+- Then after linking up MongoDB, I could not bring JSON files from server/database to client. Due to time constraints, I pivoted and used a separate server using NodeJS. 
+- It was my first time using React Table and the table could look better.
 
 ## Improvements
 
