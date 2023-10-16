@@ -31,6 +31,17 @@ Dotenv
 
 MongoDB
 
+### Project
+
+![start](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
+Starting page
+
+![validation fail](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
+Validation failed: typo in fruit
+
+![validation pass](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
+Validation passed: Database updated
+
 ## Code Features
 
 - Fruits and their price is stored on database and is fetched on load with useEffect
