@@ -33,13 +33,13 @@ MongoDB
 
 ### Project
 
-![start](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
+![start](https://github.com/berwyntan/raid/blob/main/README/example-empty.png)
 Starting page
 
-![validation fail](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
+![validation fail](https://github.com/berwyntan/raid/blob/main/README/example-negative.png)
 Validation failed: typo in fruit
 
-![validation pass](https://github.com/berwyntan/raid/blob/main/README/Note%2012%20Oct%202023%202.png)
+![validation pass](https://github.com/berwyntan/raid/blob/main/README/example-positive.png)
 Validation passed: Database updated
 
 ## Code Features
