@@ -1,7 +1,6 @@
 'use client'
 
-import Image from 'next/image'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 import {
   createColumnHelper,
@@ -10,7 +9,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
-import { dbConnect } from '../../lib/mongodb'
+// import { dbConnect } from '../../lib/dbConnect'
 
 // React table column helper
 const columnHelper = createColumnHelper()
@@ -36,18 +35,20 @@ const columns = [
 ]
 
 // pricing of fruits
-const fruitsData = {
-  'apple': 2,
-  'banana': 1.5,
-  'pear': 2.3,
-  'orange': 1.8
-}
+// const fruitsData = {
+//   'apple': 2,
+//   'banana': 1.5,
+//   'pear': 2.3,
+//   'orange': 1.8
+// }
 
 // list of available fruits
-const fruitsList = Object.keys(fruitsData)
+// const fruitsList = Object.keys(fruitsData)
 
 // function to validate input
-const lineValidation = (line) => {
+const lineValidation = (line, price) => {
+  // list of available fruits
+  const fruitsList = Object.keys(price)
   // split entry line by space
   const lineSplit = line.toLowerCase().split(' ')
   // create json for item and qty
@@ -63,7 +64,7 @@ const lineValidation = (line) => {
       }
     }      
   }
-  console.log(order)
+  // console.log(order)
 
   const countValidation = {
     1: 2,
@@ -92,7 +93,8 @@ const lineValidation = (line) => {
 }
 
 // function to calculate subtotal and total
-const getOrderDetails = (order) => {
+const getOrderDetails = (order, price) => {
+    
   const receipt = []
   let total = 0
   let i = 0
@@ -100,7 +102,7 @@ const getOrderDetails = (order) => {
   for (const [key1, value1] of Object.entries(order)) {
     
     // iterate through pricelist 
-    for (const [key2, value2] of Object.entries(fruitsData)) {
+    for (const [key2, value2] of Object.entries(price)) {
       if (key1 === key2) {
         // 0:fruit, 1: qty, 2: unitPrice, 3: subtotal
         const details = {}
@@ -121,6 +123,9 @@ const getOrderDetails = (order) => {
 }
 
 export default function Home() {
+
+  // pricelist for fruits
+  const [price, setPrice] = useState()
   // react table 
   const [data, setData] = useState([])
   const table = useReactTable({
@@ -137,25 +142,64 @@ export default function Home() {
 
   // useState for errors
   const [error, setError] = useState('')
+
+  // useState for success
+  const [success, setSuccess] = useState('')
+
+
+  const getFruitsPrice = async () => {
+    
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER}/api/price`, { cache: 'force-cache' })
+    const data = await res.json()
+    // console.log(data.result)
+    let prices = {}
+    for (let i=0; i<data.result.length; i++) {
+      prices[data.result[i].name] = data.result[i].price
+    }
+    // console.log(prices)
+    setPrice(prices)
+  }
+
+  // get fruits price
+  useEffect(() => {
+    getFruitsPrice()
+    
+  }, [])
   
   // function to handle form input
   const lineHandler = async (event) => {
     event.preventDefault()
     setError('')
+    setSuccess('')
     const enteredLine = lineRef.current.value
 
     // apply validation
-    const { order, lineError } = lineValidation(enteredLine)
+    const { order, lineError } = lineValidation(enteredLine, price)
     
     // calculate sub totals and total
-    const receipt = getOrderDetails(order)
+    const receipt = getOrderDetails(order, price)
     console.log(receipt)
     setData(receipt[0])
     setTotal(receipt[1].total)
     setError(lineError)
-    const res = await fetch(`https://catfact.ninja/fact`, { cache: 'force-cache' })
-    const data = await res.json()
-    console.log(data.fact)
+    const orderInfo = {orderInfo: [receipt[0]], total: receipt[1].total}
+    console.log(orderInfo)
+    
+    if (!lineError) {
+      let response = await fetch(`${process.env.NEXT_PUBLIC_SERVER}/api/order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(orderInfo)
+      })
+  
+      let result = await response.json()
+      if (result.success && !error) {
+        setSuccess("Database updated!")
+      }
+    }
+    
   }
 
   return (
@@ -228,7 +272,8 @@ export default function Home() {
       </table>
       </div>
       <div className=''><b>Total: ${total}</b></div>
-      <div>{error}</div>
+      <div className='my-2'>{error}</div>
+      <div className='my-2'>{success}</div>
     </main>
   )
   
